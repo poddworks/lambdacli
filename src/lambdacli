@@ -27,4 +27,13 @@ program.
         cron(ruleName, opts);
     });
 
+program.
+    command("info").
+    description("Show information about configuration").
+    action(function (opts) {
+        const meta = require(`${process.cwd()}/.lambdarc.json`);
+        console.log(JSON.stringify(meta.config, null, "  "));
+        console.log(JSON.stringify(meta.trigger, null, "  "));
+    });
+
 program.parse(process.argv);
