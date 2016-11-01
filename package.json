@@ -1,0 +1,41 @@
+{
+  "name": "lambdacli",
+  "version": "0.0.1",
+  "description": "Build template for AWS Lambda function",
+  "main": "lambdacli",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/poddworks/lambdacli.git"
+  },
+  "bin": {
+    "lambdacli": "./dist/lambdacli"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "README.md"
+  ],
+  "author": "Jeffrey Jen <yihungjen@gmail.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/poddworks/lambdacli/issues"
+  },
+  "homepage": "https://github.com/poddworks/lambdacli#readme",
+  "dependencies": {
+    "babel-runtime": "^6.11.6",
+    "commander": "^2.9.0",
+    "inquirer": "^1.2.2",
+    "mkdirp": "^0.5.1",
+    "shelljs": "^0.7.5"
+  },
+  "devDependencies": {
+    "babel-plugin-inline-package-json": "^2.0.0",
+    "babel-plugin-minify-dead-code-elimination": "0.0.4",
+    "babel-plugin-transform-runtime": "^6.15.0",
+    "babel-preset-es2015": "^6.14.0",
+    "del": "^2.2.1",
+    "gulp": "^3.9.1",
+    "gulp-babel": "^6.1.2"
+  }
+}

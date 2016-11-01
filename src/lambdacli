@@ -1,0 +1,22 @@
+#!/usr/bin/env node
+import program from "commander";
+import { create } from "./create";
+import { update } from "./update";
+
+program.version(require("../package.json").version);
+
+program.
+    command("create <functionName>").
+    description("Create a project `here` for a new AWS Lambda").
+    action(function (functionName, opts) {
+        create(functionName, opts);
+    });
+
+program.
+    command("update").
+    description("Update configuration for AWS Lambda").
+    action(function (opts) {
+        update(opts);
+    });
+
+program.parse(process.argv);
