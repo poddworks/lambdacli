@@ -115,17 +115,19 @@ function _create(functionName, opts, ans) {
 
 function _lambdaConfig(functionName, { Description, Handler, Role, Runtime, Timeout, MemorySize }) {
     let dotLambdaRc = {
-        dest: {
-            lib: "lib",
-            lambda: "dist"
-        },
-        paths: {
-            lib: [ "src/**/*" ],
-            lambda: {
-                lib: "lib/**/*",
-                meta: [ "package.json", ".npmrc", "lambda.js" ],
-                src : [ "config.js" ]
-            }
+        build: {
+            dest: {
+                lib: "lib",
+                lambda: "dist"
+            },
+            paths: {
+                lib: [ "src/**/*" ],
+                lambda: {
+                    lib: "lib/**/*",
+                    meta: [ "package.json", ".npmrc", "lambda.js" ],
+                    src : [ "config.js" ]
+                }
+            },
         },
         config: {
             FunctionName: functionName,

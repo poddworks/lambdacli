@@ -32,10 +32,10 @@ const babel = require("gulp-babel");
 const del = require("del");
 const gulp = require("gulp");
 gulp.task("lib.clean", function () {
-    return del([ cfg.dest.lib ]);
+    return del([ cfg.build.dest.lib ]);
 });
 gulp.task("lib", function () {
-    return gulp.src(cfg.paths.lib).
+    return gulp.src(cfg.build.paths.lib).
         pipe(babel({
             presets: [ "es2015" ],
             plugins: [ "inline-package-json", "transform-runtime" ]
@@ -43,7 +43,7 @@ gulp.task("lib", function () {
         pipe(babel({
             plugins: [ "minify-dead-code-elimination" ],
         })).
-        pipe(gulp.dest(cfg.dest.lib));
+        pipe(gulp.dest(cfg.build.dest.lib));
 });
 `;
 
@@ -55,16 +55,16 @@ const gulp = require("gulp");
 const shell = require("gulp-shell")
 const zip = require("gulp-zip");
 gulp.task("lambda.clean", function () {
-    return del([ cfg.dest.lambda ]);
+    return del([ cfg.build.dest.lambda ]);
 });
 gulp.task("lambda.npm.lib", [ "lib" ] , function () {
-    return gulp.src(cfg.paths.lambda.lib, { dot: true }).pipe(gulp.dest(cfg.dest.lambda + "/lib"));
+    return gulp.src(cfg.build.paths.lambda.lib, { dot: true }).pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
 });
 gulp.task("lambda.npm.meta", function () {
-    return gulp.src(cfg.paths.lambda.meta, { dot: true }).pipe(gulp.dest(cfg.dest.lambda));
+    return gulp.src(cfg.build.paths.lambda.meta, { dot: true }).pipe(gulp.dest(cfg.build.dest.lambda));
 });
 gulp.task("lambda.npm.src", [ "lambda.npm.lib", "lambda.npm.meta" ] , function () {
-    return gulp.src(cfg.paths.lambda.src, { dot: true }).
+    return gulp.src(cfg.build.paths.lambda.src, { dot: true }).
         pipe(babel({
             presets: [ "es2015" ],
             plugins: [ "inline-package-json", "transform-inline-environment-variables", "transform-runtime" ]
@@ -72,13 +72,13 @@ gulp.task("lambda.npm.src", [ "lambda.npm.lib", "lambda.npm.meta" ] , function (
         pipe(babel({
             plugins: [ "minify-dead-code-elimination" ],
         })).
-        pipe(gulp.dest(cfg.dest.lambda));
+        pipe(gulp.dest(cfg.build.dest.lambda));
 });
 gulp.task("lambda.npm", [ "lambda.npm.src" ], shell.task([
-    \`cd \${cfg.dest.lambda} && npm install --production\`
+    \`cd \${cfg.build.dest.lambda} && npm install --production\`
 ]));
 gulp.task("lambda", [ "lambda.npm" ], function() {
-    gulp.src([ \`\${cfg.dest.lambda}/**/*\`, \`!\${cfg.dest.lambda}/app.zip\` ]).pipe(zip("app.zip")).pipe(gulp.dest(cfg.dest.lambda));
+    gulp.src([ \`\${cfg.build.dest.lambda}/**/*\`, \`!\${cfg.build.dest.lambda}/app.zip\` ]).pipe(zip("app.zip")).pipe(gulp.dest(cfg.build.dest.lambda));
 });
 `;
 
@@ -94,7 +94,7 @@ gulp.task("deploy.dev", function () {
     };
     console.log(params)
     console.log(opts);
-    return gulp.src(\`\${cfg.dest.lambda}/app.zip\`).pipe(lambda(params, opts));
+    return gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`).pipe(lambda(params, opts));
 });
 gulp.task("deploy.prod", function () {
     let params = cfg.config;
@@ -104,6 +104,6 @@ gulp.task("deploy.prod", function () {
     };
     console.log(params)
     console.log(opts);
-    return gulp.src(\`\${cfg.dest.lambda}/app.zip\`).pipe(lambda(params, opts));
+    return gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`).pipe(lambda(params, opts));
 });
 `;
