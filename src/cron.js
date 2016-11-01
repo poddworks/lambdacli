@@ -100,6 +100,8 @@ function _cron(ruleName, opts, { Description, TargetArn, RoleArn, ScheduleExpres
 
         lambdarc.trigger.TargetArn = TargetArn;
 
+        lambdarc.trigger.RuleName = ruleName;
+
         fs.writeFileSync(rc, JSON.stringify(lambdarc, null, "    "));
 
         return null;
