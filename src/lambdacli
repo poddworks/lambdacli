@@ -2,6 +2,7 @@
 import program from "commander";
 import { create } from "./create";
 import { update } from "./update";
+import { cron } from "./cron";
 
 program.version(require("../package.json").version);
 
@@ -17,6 +18,13 @@ program.
     description("Update configuration for AWS Lambda").
     action(function (opts) {
         update(opts);
+    });
+
+program.
+    command("cron <ruleName>").
+    description("Setup cron scheduled job via AWS CloudWatch Event").
+    action(function (ruleName, opts) {
+        cron(ruleName, opts);
     });
 
 program.parse(process.argv);

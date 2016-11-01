@@ -1,5 +1,6 @@
 import fs from "fs";
-import inquirer from "inquirer"
+import inquirer from "inquirer";
+import { pick } from  "./util";
 
 const lambdarc = {}
 
@@ -48,19 +49,6 @@ export function update(opts) {
         }
     ];
     inquirer.prompt(questions).then(_update.bind(null, opts));
-}
-
-function pick(src, ...fields) {
-    let dst = {};
-    for (let f of fields) {
-        if (f in src) {
-            if (src[f] === null || src[f] === undefined || src[f] === "") {
-                continue;
-            }
-            dst[f] = src[f];
-        }
-    }
-    return dst;
 }
 
 function _update(opts, ans) {

@@ -23,10 +23,12 @@
   },
   "homepage": "https://github.com/poddworks/lambdacli#readme",
   "dependencies": {
+    "aws-sdk": "^2.6.12",
     "babel-runtime": "^6.11.6",
     "commander": "^2.9.0",
     "inquirer": "^1.2.2",
     "mkdirp": "^0.5.1",
+    "sha1": "^1.1.1",
     "shelljs": "^0.7.5"
   },
   "devDependencies": {

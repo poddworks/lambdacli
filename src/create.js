@@ -135,6 +135,8 @@ function _lambdaConfig(functionName, { Description, Handler, Role, Runtime, Time
             Description,
             MemorySize,
             Timeout
+        },
+        trigger: {
         }
     };
     return dotLambdaRc;
