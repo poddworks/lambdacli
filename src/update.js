@@ -11,23 +11,23 @@ export function update(opts) {
         {
             type: "input",
             name: "Description",
-            message: "AWS Lambda function Description",
+            message: "Lambda Description",
             default: lambdarc.config.Description
         },
         {
             type: "input",
             name: "Role",
-            message: "AWS Lambda execution Role",
+            message: "Lambda execution Role",
             default: lambdarc.config.Role,
             validate: function (input) {
                 let pass = input.match(/arn:aws:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_/]+/);
-                return (input !== "" ? true : "You must provide a valid role for Lambda");
+                return (input !== "" ? true : "You must provide a valid IAM role");
             }
         },
         {
             type: "input",
             name: "Timeout",
-            message: "AWS Lambda execution Timeout",
+            message: "Lambda execution Timeout",
             default: lambdarc.config.Timeout,
             validate: function (input) {
                 let val = Number(input);
@@ -38,7 +38,7 @@ export function update(opts) {
         {
             type: "input",
             name: "MemorySize",
-            message: "AWS Lambda execution MemorySize Hint",
+            message: "Lambda execution MemorySize Hint",
             default: lambdarc.config.MemorySize,
             validate: function (input) {
                 let val = Number(input);

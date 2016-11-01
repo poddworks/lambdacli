@@ -7,7 +7,7 @@ const questions = [
     {
         type: "input",
         name: "Description",
-        message: "AWS Lambda function Description",
+        message: "Lambda function Description",
         validate: function (input) {
             return (input !== "" ? true : "You must provide a valid description of this Lambda");
         }
@@ -15,7 +15,7 @@ const questions = [
     {
         type: "input",
         name: "Handler",
-        message: "AWS Lambda function entrypoint",
+        message: "Lambda function entrypoint",
         validate: function (input) {
             return (input !== "" ? true : "You must provide a valid entrypoint for Lambda");
         }
@@ -23,16 +23,16 @@ const questions = [
     {
         type: "input",
         name: "Role",
-        message: "AWS Lambda execution Role",
+        message: "Lambda execution Role",
         validate: function (input) {
             let pass = input.match(/arn:aws:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_/]+/);
-            return (input !== "" ? true : "You must provide a valid role for Lambda");
+            return (input !== "" ? true : "You must provide a valid IAM role");
         }
     },
     {
         type: "list",
         name: "Runtime",
-        message: "AWS Lambda execution Runtime",
+        message: "Lambda execution Runtime",
         choices: [
             "nodejs",
             "nodejs4.3",
@@ -43,7 +43,7 @@ const questions = [
     {
         type: "input",
         name: "Timeout",
-        message: "AWS Lambda execution Timeout",
+        message: "Lambda execution Timeout",
         default: 30,
         validate: function (input) {
             let val = Number(input);
@@ -54,7 +54,7 @@ const questions = [
     {
         type: "input",
         name: "MemorySize",
-        message: "AWS Lambda execution MemorySize Hint",
+        message: "Lambda execution MemorySize Hint",
         default: 128,
         validate: function (input) {
             let val = Number(input);
