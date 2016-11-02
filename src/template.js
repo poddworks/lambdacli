@@ -97,26 +97,31 @@ export const gulpDeploy = `"use strict"
 const cfg = require("../.lambdarc.json");
 const gulp = require("gulp");
 const lambda = require("gulp-awslambda");
+const stream = require("merge-stream")();
 
 gulp.task("deploy.dev", function () {
-    let params = cfg.config;
+    let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: false,
         region: process.env.AWS_REGION || "ap-northeast-1"
     };
-    console.log(params)
-    console.log(opts);
-    return gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`).pipe(lambda(params, opts));
+    cfg.handler.forEach((config) => {
+        console.log(config);
+        stream.add(bundle.pipe((lambda(config, opts))));
+    });
+    return stream;
 });
 
 gulp.task("deploy.prod", function () {
-    let params = cfg.config;
+    let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: true,
         region: process.env.AWS_REGION || "ap-northeast-1"
     };
-    console.log(params)
-    console.log(opts);
-    return gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`).pipe(lambda(params, opts));
+    cfg.handler.forEach((config) => {
+        console.log(config);
+        stream.add(bundle.pipe((lambda(config, opts))));
+    });
+    return stream;
 });
 `;

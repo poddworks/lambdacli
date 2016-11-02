@@ -7,17 +7,17 @@ import { cron } from "./cron";
 program.version(require("../package.json").version);
 
 program.
-    command("create <functionName>").
+    command("create <functionPrefix>").
     description("Create a project `here` for a new AWS Lambda").
-    action(function (functionName, opts) {
-        create(functionName, opts);
+    action(function (functionPrefix, opts) {
+        create(functionPrefix, opts);
     });
 
 program.
-    command("update").
-    description("Update configuration for AWS Lambda").
-    action(function (opts) {
-        update(opts);
+    command("update <handlerName>").
+    description("Add/Update handler configuration to AWS Lambda").
+    action(function (handlerName, opts) {
+        update(handlerName, opts);
     });
 
 program.
@@ -32,8 +32,12 @@ program.
     description("Show information about configuration").
     action(function (opts) {
         const meta = require(`${process.cwd()}/.lambdarc.json`);
-        console.log(JSON.stringify(meta.config, null, "  "));
-        console.log(JSON.stringify(meta.trigger, null, "  "));
+        if (meta.handler.length) {
+            console.log(JSON.stringify(meta.handler, null, "  "));
+        }
+        if (meta.trigger.length) {
+            console.log(JSON.stringify(meta.trigger, null, "  "));
+        }
     });
 
 program.parse(process.argv);

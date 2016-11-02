@@ -2,28 +2,21 @@ import fs from "fs";
 import inquirer from "inquirer";
 import shell from "shelljs";
 import { Entry, Bootstrap, gulp, gulpLib, gulpLambda, gulpDeploy } from "./template";
+import { buildConfig, taskConfig } from "./util";
 
 const questions = [
     {
         type: "input",
         name: "Description",
-        message: "Lambda function Description",
+        message: "Default Lambda function Description",
         validate: function (input) {
             return (input !== "" ? true : "You must provide a valid description of this Lambda");
         }
     },
     {
         type: "input",
-        name: "Handler",
-        message: "Lambda function entrypoint",
-        validate: function (input) {
-            return (input !== "" ? true : "You must provide a valid entrypoint for Lambda");
-        }
-    },
-    {
-        type: "input",
         name: "Role",
-        message: "Lambda execution Role",
+        message: "Default Lambda execution Role",
         validate: function (input) {
             let pass = input.match(/arn:aws:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_/]+/);
             return (input !== "" ? true : "You must provide a valid IAM role");
@@ -32,7 +25,7 @@ const questions = [
     {
         type: "list",
         name: "Runtime",
-        message: "Lambda execution Runtime",
+        message: "Default Lambda execution Runtime",
         choices: [
             "nodejs",
             "nodejs4.3",
@@ -43,7 +36,7 @@ const questions = [
     {
         type: "input",
         name: "Timeout",
-        message: "Lambda execution Timeout",
+        message: "Default Lambda execution Timeout",
         default: 30,
         validate: function (input) {
             let val = Number(input);
@@ -54,7 +47,7 @@ const questions = [
     {
         type: "input",
         name: "MemorySize",
-        message: "Lambda execution MemorySize Hint",
+        message: "Default Lambda execution MemorySize Hint",
         default: 128,
         validate: function (input) {
             let val = Number(input);
@@ -64,22 +57,20 @@ const questions = [
     }
 ];
 
-export function create(functionName, opts) {
-    inquirer.prompt(questions).then(_create.bind(null, functionName, opts));
+export function create(functionPrefix, opts) {
+    inquirer.prompt(questions).then(_create.bind(null, functionPrefix, opts));
 }
 
-function _create(functionName, opts, ans) {
+function _create(functionPrefix, opts, ans) {
     [ "gulp.d", "src" ].forEach((dir) => shell.exec(`mkdir -p ${dir}`));
 
-    fs.writeFileSync(".lambdarc.json", JSON.stringify(_lambdaConfig(functionName, ans), null, "    "));
+    fs.writeFileSync(".lambdarc.json", buildConfig(functionPrefix, ans));
 
     fs.writeFileSync("lambda.js", Entry);
 
-    fs.writeFileSync("config.js", _handlerConfig(ans));
+    fs.writeFileSync("config.js", taskConfig());
 
     fs.writeFileSync("src/lambda.js", Bootstrap);
-
-    fs.writeFileSync(`src/${ans.Handler}.js`, _handler(ans));
 
     fs.writeFileSync("gulpfile.js", gulp);
 
@@ -108,66 +99,8 @@ function _create(functionName, opts, ans) {
         "gulp-rename",
         "gulp-shell",
         "gulp-zip",
+        "merge-stream",
         "require-dir"
     ];
     shell.exec(`npm install --save-dev ${devDependencies.join(" ")}`);
-}
-
-function _lambdaConfig(functionName, { Description, Handler, Role, Runtime, Timeout, MemorySize }) {
-    let dotLambdaRc = {
-        build: {
-            dest: {
-                lib: "lib",
-                lambda: "dist"
-            },
-            paths: {
-                lib: [ "src/**/*" ],
-                lambda: {
-                    lib: "lib/**/*",
-                    meta: [ "package.json", ".npmrc", "lambda.js" ],
-                    src : [ "config.js" ]
-                }
-            },
-        },
-        config: {
-            FunctionName: functionName,
-            Handler: `lambda.${Handler}`,
-            Role,
-            Runtime,
-            Description,
-            MemorySize,
-            Timeout
-        },
-        trigger: {
-        }
-    };
-    return dotLambdaRc;
-}
-
-function _handlerConfig({ Handler }) {
-    let config = `"use strict"
-module.exports = {
-    // TODO: for you to configure settings
-    tasks: {
-        ${Handler}: {}
-    }
-};
-`;
-    return config;
-}
-
-function _handler({ Handler }) {
-    let handler = `export function ${Handler}(event, context, callback) {
-    // TODO: for you to implement
-    callback(null, "done");
-}
-
-export function make(config) {
-    // TODO: store configuration and export handler
-    return {
-        ${Handler}
-    };
-}
-`;
-    return handler;
 }
