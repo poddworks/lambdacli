@@ -1,3 +1,13 @@
+import fs from "fs";
+
+export function getLambdarc() {
+    return `${process.cwd()}/.lambdarc.json`;
+}
+
+export function getTaskrc() {
+    return `${process.cwd()}/config.js`;
+}
+
 export function pick(src, ...fields) {
     let dst = {};
     for (let f of fields) {
@@ -68,4 +78,21 @@ export function make(config) {
 }
 `;
     return handler;
+}
+
+export function prerunCheck(config, taskcfg) {
+    const lambdarc = getLambdarc();
+    const taskrc = getTaskrc();
+    if (config && fs.existsSync(lambdarc)) {
+        Object.assign(config, require(lambdarc));
+    } else {
+        console.log("You must first create AWS Lambda project");
+        process.exit(1);
+    }
+    if (taskcfg && fs.existsSync(taskrc)) {
+        Object.assign(taskcfg, require(taskrc));
+    } else {
+        console.log("Project configuration error");
+        process.exit(2);
+    }
 }

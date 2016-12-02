@@ -1,22 +1,12 @@
 import fs from "fs";
 import inquirer from "inquirer";
-import { handlerGen, pick, taskConfig } from  "./util";
+import { getLambdarc, getTaskrc, handlerGen, pick, prerunCheck, taskConfig } from  "./util";
 
 const config = {};
 const taskcfg = {};
 
-const lambdarc = `${process.cwd()}/.lambdarc.json`;
-const taskrc = `${process.cwd()}/config.js`;
-
 export function update(handlerName, opts) {
-    if (fs.existsSync(lambdarc)) {
-        Object.assign(config, require(lambdarc));
-    } else {
-        throw new Error("You must first create AWS Lambda project before update");
-    }
-    if (fs.existsSync(taskrc)) {
-        Object.assign(taskcfg, require(taskrc));
-    }
+    prerunCheck(config, taskcfg);
 
     let functionName = `${config.lambda.Prefix}-${handlerName}`;
 
@@ -78,9 +68,9 @@ function _update(handlerName, functionName, idx, opts, ans) {
         fs.writeFileSync(`src/${handlerName}.js`, handlerGen(handlerName));
         // Setup config entry for new handler
         taskcfg.tasks[handlerName] = {};
-        fs.writeFileSync(taskrc, taskConfig(taskcfg));
+        fs.writeFileSync(getTaskrc(), taskConfig(taskcfg));
     } else {
         Object.assign(config.handler[idx], settings);
     }
-    fs.writeFileSync(lambdarc, JSON.stringify(config, null, "    "));
+    fs.writeFileSync(getLambdarc(), JSON.stringify(config, null, "    "));
 }

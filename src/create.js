@@ -2,7 +2,7 @@ import fs from "fs";
 import inquirer from "inquirer";
 import shell from "shelljs";
 import { Entry, Bootstrap, gulp, gulpLib, gulpLambda, gulpDeploy } from "./template";
-import { buildConfig, taskConfig } from "./util";
+import { buildConfig, getLambdarc, getTaskrc, taskConfig } from "./util";
 
 const questions = [
     {
@@ -64,11 +64,11 @@ export function create(functionPrefix, opts) {
 function _create(functionPrefix, opts, ans) {
     [ "gulp.d", "src" ].forEach((dir) => shell.exec(`mkdir -p ${dir}`));
 
-    fs.writeFileSync(".lambdarc.json", buildConfig(functionPrefix, ans));
+    fs.writeFileSync(getLambdarc(), buildConfig(functionPrefix, ans));
+
+    fs.writeFileSync(getTaskrc(), taskConfig());
 
     fs.writeFileSync("lambda.js", Entry);
-
-    fs.writeFileSync("config.js", taskConfig());
 
     fs.writeFileSync("src/lambda.js", Bootstrap);
 
