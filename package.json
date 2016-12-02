@@ -1,6 +1,6 @@
 {
   "name": "lambdacli",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Build template for AWS Lambda function",
   "main": "lambdacli",
   "scripts": {},
