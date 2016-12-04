@@ -25,17 +25,34 @@ export function buildConfig(prefix, { Description, Role, Runtime, Timeout, Memor
     let dotLambdaRc = {
         build: {
             dest: {
-                lib: "lib",
+                func: "lib",
                 lambda: "dist"
             },
             paths: {
-                lib: [ "src/**/*" ],
+                func: {
+                    lib: [
+                        "src/functions.js",
+                        "src/task/**/*"
+                    ],
+                    src: [
+                        "functions.js"
+                    ]
+                },
                 lambda: {
-                    lib: "lib/**/*",
-                    meta: [ "package.json", ".npmrc", "lambda.js" ],
-                    src : [ "config.js" ]
+                    meta: [
+                        "package.json",
+                        ".npmrc",
+                    ],
+                    lib: [
+                        "src/lambda.js",
+                        "src/worker/**/*"
+                    ],
+                    src: [
+                        "config.js",
+                        "lambda.js"
+                    ]
                 }
-            },
+            }
         },
         lambda: {
             Prefix: prefix,

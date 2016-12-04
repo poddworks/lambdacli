@@ -1,7 +1,8 @@
 import fs from "fs";
 import inquirer from "inquirer";
 import shell from "shelljs";
-import { Entry, Bootstrap, gulp, gulpLib, gulpLambda, gulpDeploy } from "./template";
+import { Entry, Bootstrap, FunctionEntry, FunctionCore, generatePackageJSON } from "./template";
+import { gulp, gulpFunc, gulpLambda, gulpDeploy } from "./template";
 import { buildConfig, getLambdarc, getTaskrc, taskConfig } from "./util";
 
 const questions = [
@@ -62,19 +63,25 @@ export function create(functionPrefix, opts) {
 }
 
 function _create(functionPrefix, opts, ans) {
-    [ "gulp.d", "src" ].forEach((dir) => shell.exec(`mkdir -p ${dir}`));
+    [ "gulp.d", "src/worker", "src/task" ].forEach((dir) => shell.exec(`mkdir -p ${dir}`));
 
     fs.writeFileSync(getLambdarc(), buildConfig(functionPrefix, ans));
 
     fs.writeFileSync(getTaskrc(), taskConfig());
 
+    fs.writeFileSync("package.json", generatePackageJSON(functionPrefix));
+
     fs.writeFileSync("lambda.js", Entry);
 
     fs.writeFileSync("src/lambda.js", Bootstrap);
 
+    fs.writeFileSync("functions.js", FunctionEntry);
+
+    fs.writeFileSync("src/functions.js", FunctionCore);
+
     fs.writeFileSync("gulpfile.js", gulp);
 
-    fs.writeFileSync("gulp.d/gulpfile.lib.js", gulpLib);
+    fs.writeFileSync("gulp.d/gulpfile.func.js", gulpFunc);
 
     fs.writeFileSync("gulp.d/gulpfile.lambda.js", gulpLambda);
 

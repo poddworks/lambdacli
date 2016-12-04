@@ -1,3 +1,21 @@
+export function generatePackageJSON(functionPrefix) {
+    return `{
+  "name": "${functionPrefix}",
+  "version": "0.0.0",
+  "files": [
+    "lib",
+    "bin",
+    "app.js",
+    "LICENSE"
+  ],
+  "dependencies": {
+  },
+  "devDependencies": {
+  }
+}
+`
+}
+
 export const Entry = `"use strict"
 module.exports = require("./lib/lambda").bootstrap(require("./config"));
 `;
@@ -7,38 +25,49 @@ export const Bootstrap = `const Registered = {};
 export function bootstrap(config) {
     // Go through provided configurations to enable each task
     for (let task in config.tasks) {
-        let module = require(\`./\${task}\`);
+        let module = require(\`./worker/\${task}\`);
         Object.assign(Registered, module.make(config.tasks[task]));
     }
     return Registered;
 }
 `;
 
+export const FunctionEntry = `"use strict"
+module.exports = require("./lib/functions");
+`;
+
+export const FunctionCore = `// TODO: export functions as required by adding export here
+// Implementation should go under ./task/
+
+export {};
+`;
+
 export const gulp = `"use strict"
+
 require("dotenv").config();
 const gulp = require("gulp");
 const requireDir = require("require-dir");
 
 requireDir("./gulp.d");
 
-gulp.task("clean", [ "lib.clean", "lambda.clean" ]);
+gulp.task("clean", [ "func.clean", "lambda.clean" ]);
 
-gulp.task("default", [ "lib", "lambda" ]);
+gulp.task("default", [ "func", "lambda" ]);
 `;
 
-export const gulpLib = `"use strict"
+export const gulpFunc = `"use strict"
 
 const cfg = require("../.lambdarc.json");
 const babel = require("gulp-babel");
 const del = require("del");
 const gulp = require("gulp");
 
-gulp.task("lib.clean", function () {
-    return del([ cfg.build.dest.lib ]);
+gulp.task("func.clean", function () {
+    return del([ cfg.build.dest.func ]);
 });
 
-gulp.task("lib", function () {
-    return gulp.src(cfg.build.paths.lib).
+gulp.task("func", function () {
+    return gulp.src(cfg.build.paths.func.lib, { dot: true, base: "src/" }).
         pipe(babel({
             presets: [ "es2015" ],
             plugins: [ "inline-package-json", "transform-runtime" ]
@@ -46,7 +75,7 @@ gulp.task("lib", function () {
         pipe(babel({
             plugins: [ "minify-dead-code-elimination" ],
         })).
-        pipe(gulp.dest(cfg.build.dest.lib));
+        pipe(gulp.dest(cfg.build.dest.func));
 });
 `;
 
@@ -63,12 +92,20 @@ gulp.task("lambda.clean", function () {
     return del([ cfg.build.dest.lambda ]);
 });
 
-gulp.task("lambda.npm.lib", [ "lib" ] , function () {
-    return gulp.src(cfg.build.paths.lambda.lib, { dot: true }).pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
-});
-
 gulp.task("lambda.npm.meta", function () {
     return gulp.src(cfg.build.paths.lambda.meta, { dot: true }).pipe(gulp.dest(cfg.build.dest.lambda));
+});
+
+gulp.task("lambda.npm.lib", function () {
+    return gulp.src(cfg.build.paths.lambda.lib, { dot: true, base: "src/" }).
+        pipe(babel({
+            presets: [ "es2015" ],
+            plugins: [ "inline-package-json", "transform-runtime" ]
+        })).
+        pipe(babel({
+            plugins: [ "minify-dead-code-elimination" ],
+        })).
+        pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
 });
 
 gulp.task("lambda.npm.src", [ "lambda.npm.lib", "lambda.npm.meta" ] , function () {

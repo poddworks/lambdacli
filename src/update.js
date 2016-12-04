@@ -65,7 +65,7 @@ function _update(handlerName, functionName, idx, opts, ans) {
     if (idx === -1) {
         // Setup handler from default template
         config.handler.push(Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings));
-        fs.writeFileSync(`src/${handlerName}.js`, handlerGen(handlerName));
+        fs.writeFileSync(`src/worker/${handlerName}.js`, handlerGen(handlerName));
         // Setup config entry for new handler
         taskcfg.tasks[handlerName] = {};
         fs.writeFileSync(getTaskrc(), taskConfig(taskcfg));
