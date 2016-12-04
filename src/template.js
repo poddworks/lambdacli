@@ -162,3 +162,35 @@ gulp.task("deploy.prod", function () {
     return stream;
 });
 `;
+
+export const gulpDeployOne = function gulpDeployOne(handlerName) {
+    return `"use strict"
+
+const cfg = require("../.lambdarc.json");
+const gulp = require("gulp");
+const lambda = require("gulp-awslambda");
+const stream = require("merge-stream")();
+
+gulp.task("deploy.dev.${handlerName}", function () {
+    let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
+    let opts = {
+        publish: false,
+        region: process.env.AWS_REGION || "ap-northeast-1"
+    };
+    let config = cfg.handler.find((config) => config.Handler === "lambda.${handlerName}");
+    stream.add(bundle.pipe((lambda(config, opts))));
+    return stream;
+});
+
+gulp.task("deploy.prod.${handlerName}", function () {
+    let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
+    let opts = {
+        publish: true,
+        region: process.env.AWS_REGION || "ap-northeast-1"
+    };
+    let config = cfg.handler.find((config) => config.Handler === "lambda.${handlerName}");
+    stream.add(bundle.pipe((lambda(config, opts))));
+    return stream;
+});
+`;
+}

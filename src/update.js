@@ -1,6 +1,7 @@
 import fs from "fs";
 import inquirer from "inquirer";
 import { getLambdarc, getTaskrc, handlerGen, pick, prerunCheck, taskConfig } from  "./util";
+import { gulpDeployOne } from  "./template";
 
 const config = {};
 const taskcfg = {};
@@ -66,6 +67,7 @@ function _update(handlerName, functionName, idx, opts, ans) {
         // Setup handler from default template
         config.handler.push(Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings));
         fs.writeFileSync(`src/worker/${handlerName}.js`, handlerGen(handlerName));
+        fs.writeFileSync(`gulp.d/gulpfile.${handlerName}.js`, gulpDeployOne(handlerName));
         // Setup config entry for new handler
         taskcfg.tasks[handlerName] = {};
         fs.writeFileSync(getTaskrc(), taskConfig(taskcfg));
