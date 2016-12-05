@@ -4,8 +4,7 @@ export function generatePackageJSON(functionPrefix) {
   "version": "0.0.0",
   "files": [
     "lib",
-    "bin",
-    "app.js",
+    "functions.js",
     "LICENSE"
   ],
   "dependencies": {
