@@ -3,7 +3,7 @@ import inquirer from "inquirer";
 import shell from "shelljs";
 import { Entry, Bootstrap, FunctionEntry, FunctionCore, generatePackageJSON } from "./template";
 import { gulp, gulpFunc, gulpLambda, gulpDeploy } from "./template";
-import { buildConfig, getLambdarc, getTaskrc, taskConfig } from "./util";
+import { buildConfig, getLambda, getConfig, getListing, taskConfig, taskListing } from "./util";
 
 const questions = [
     {
@@ -65,9 +65,11 @@ export function create(functionPrefix, opts) {
 function _create(functionPrefix, opts, ans) {
     [ "gulp.d", "src/worker", "src/task" ].forEach((dir) => shell.exec(`mkdir -p ${dir}`));
 
-    fs.writeFileSync(getLambdarc(), buildConfig(functionPrefix, ans));
+    fs.writeFileSync(getLambda(), buildConfig(functionPrefix, ans));
 
-    fs.writeFileSync(getTaskrc(), taskConfig());
+    fs.writeFileSync(getListing(), taskListing());
+
+    fs.writeFileSync(getConfig(), taskConfig());
 
     fs.writeFileSync("package.json", generatePackageJSON(functionPrefix));
 

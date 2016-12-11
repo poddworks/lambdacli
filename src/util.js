@@ -1,11 +1,15 @@
 import fs from "fs";
 
-export function getLambdarc() {
+export function getLambda() {
     return `${process.cwd()}/.lambdarc.json`;
 }
 
-export function getTaskrc() {
+export function getConfig() {
     return `${process.cwd()}/config.js`;
+}
+
+export function getListing() {
+    return `${process.cwd()}/listing.js`;
 }
 
 export function pick(src, ...fields) {
@@ -43,13 +47,20 @@ export function buildConfig(prefix, { Description, Role, Runtime, Timeout, Memor
                         "package.json",
                         ".npmrc",
                     ],
-                    lib: [
-                        "src/lambda.js",
-                        "src/worker/**/*"
-                    ],
+                    lib: {
+                        src: [
+                            "src/lambda.js",
+                            "src/worker/**/*.js",
+                            "!src/worker/**/*_setting.js"
+                        ],
+                        cfg: [
+                            "src/worker/**/*_setting.js"
+                        ]
+                    },
                     src: [
                         "config.js",
-                        "lambda.js"
+                        "lambda.js",
+                        "listing.js"
                     ]
                 }
             }
@@ -72,44 +83,56 @@ export function buildConfig(prefix, { Description, Role, Runtime, Timeout, Memor
     return JSON.stringify(dotLambdaRc, null, "    ");
 }
 
-export function taskConfig(task = { tasks: {} }) {
+export function taskListing(task = { tasks: [] }) {
     let config = `"use strict"
 
-// Run lambdacli update <handlerName> to enable
-module.exports = ${JSON.stringify(task, null, "    ")};
+// Global configuration and setup
+module.exports = ${JSON.stringify(task, null, "  ")};
+`;
+    return config;
+}
+
+export function taskConfig() {
+    let config = `"use strict"
+
+// Global configuration and setup
+module.exports = {};
 `;
     return config;
 }
 
 export function handlerGen(handlerName) {
-    let handler = `export function ${handlerName}(event, context, callback) {
+    let handler = `import config from "../../config";
+import setting from "./${handlerName}_setting";
+
+export default function ${handlerName}(event, context, callback) {
     // TODO: for you to implement
     callback(null, "done");
 }
-
-export function make(config) {
-    // TODO: store configuration and export handler
-    return {
-        ${handlerName}
-    };
-}
 `;
-    return handler;
+    let handlerConfig = `export default {};
+`;
+    return { handler, handlerConfig };
 }
 
-export function prerunCheck(config, taskcfg) {
-    const lambdarc = getLambdarc();
-    const taskrc = getTaskrc();
+export function prerunCheck(config, listing) {
+    const lambdarc = getLambda();
     if (config && fs.existsSync(lambdarc)) {
         Object.assign(config, require(lambdarc));
     } else {
         console.log("You must first create AWS Lambda project");
         process.exit(1);
     }
-    if (taskcfg && fs.existsSync(taskrc)) {
-        Object.assign(taskcfg, require(taskrc));
+    const listingrc = getListing();
+    if (listing && fs.existsSync(listingrc)) {
+        Object.assign(listing, require(listingrc));
     } else {
         console.log("Project configuration error");
         process.exit(2);
+    }
+    const configrc = getConfig();
+    if (!fs.existsSync(configrc)) {
+        console.log("Project configuration error");
+        process.exit(3);
     }
 }

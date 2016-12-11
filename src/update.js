@@ -1,13 +1,13 @@
 import fs from "fs";
 import inquirer from "inquirer";
-import { getLambdarc, getTaskrc, handlerGen, pick, prerunCheck, taskConfig } from  "./util";
+import { getLambda, getListing, handlerGen, pick, prerunCheck, taskListing } from  "./util";
 import { gulpDeployOne } from  "./template";
 
 const config = {};
-const taskcfg = {};
+const listing = {};
 
 export function update(handlerName, opts) {
-    prerunCheck(config, taskcfg);
+    prerunCheck(config, listing);
 
     let functionName = `${config.lambda.Prefix}-${handlerName}`;
 
@@ -66,13 +66,15 @@ function _update(handlerName, functionName, idx, opts, ans) {
     if (idx === -1) {
         // Setup handler from default template
         config.handler.push(Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings));
-        fs.writeFileSync(`src/worker/${handlerName}.js`, handlerGen(handlerName));
+        let { handler, handlerConfig } = handlerGen(handlerName);
+        fs.writeFileSync(`src/worker/${handlerName}.js`, handler);
+        fs.writeFileSync(`src/worker/${handlerName}_setting.js`, handlerConfig);
         fs.writeFileSync(`gulp.d/gulpfile.${handlerName}.js`, gulpDeployOne(handlerName));
         // Setup config entry for new handler
-        taskcfg.tasks[handlerName] = {};
-        fs.writeFileSync(getTaskrc(), taskConfig(taskcfg));
+        listing.tasks.push(handlerName);
+        fs.writeFileSync(getListing(), taskListing(listing));
     } else {
         Object.assign(config.handler[idx], settings);
     }
-    fs.writeFileSync(getLambdarc(), JSON.stringify(config, null, "    "));
+    fs.writeFileSync(getLambda(), JSON.stringify(config, null, "    "));
 }

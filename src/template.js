@@ -16,19 +16,21 @@ export function generatePackageJSON(functionPrefix) {
 }
 
 export const Entry = `"use strict"
-module.exports = require("./lib/lambda").bootstrap(require("./config"));
+module.exports = require("./lib/lambda").default;
 `;
 
-export const Bootstrap = `const Registered = {};
+export const Bootstrap = `import config from "../config";
+import listing from "../listing";
 
-export function bootstrap(config) {
-    // Go through provided configurations to enable each task
-    for (let task in config.tasks) {
-        let module = require(\`./worker/\${task}\`);
-        Object.assign(Registered, module.make(config.tasks[task]));
-    }
-    return Registered;
+const Registered = {};
+
+// Go through provided configurations to enable each task
+for (let task of listing.tasks) {
+    let module = require(\`./worker/\${task}\`);
+    Registered[task] = module.default;
 }
+
+export default Registered;
 `;
 
 export const FunctionEntry = `"use strict"
@@ -95,8 +97,20 @@ gulp.task("lambda.npm.meta", function () {
     return gulp.src(cfg.build.paths.lambda.meta, { dot: true }).pipe(gulp.dest(cfg.build.dest.lambda));
 });
 
-gulp.task("lambda.npm.lib", function () {
-    return gulp.src(cfg.build.paths.lambda.lib, { dot: true, base: "src/" }).
+gulp.task("lambda.npm.lib.config", function () {
+    return gulp.src(cfg.build.paths.lambda.lib.cfg, { dot: true, base: "src/" }).
+        pipe(babel({
+            presets: [ "es2015" ],
+            plugins: [ "inline-package-json", "transform-inline-environment-variables", "transform-runtime" ]
+        })).
+        pipe(babel({
+            plugins: [ "minify-dead-code-elimination" ],
+        })).
+        pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
+});
+
+gulp.task("lambda.npm.lib", [ "lambda.npm.lib.config" ], function () {
+    return gulp.src(cfg.build.paths.lambda.lib.src, { dot: true, base: "src/" }).
         pipe(babel({
             presets: [ "es2015" ],
             plugins: [ "inline-package-json", "transform-runtime" ]

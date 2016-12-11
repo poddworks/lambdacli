@@ -2,7 +2,7 @@ import AWS from "aws-sdk";
 import fs from "fs";
 import inquirer from "inquirer";
 import sha1 from "sha1";
-import { getLambdarc, pick, prerunCheck } from  "./util";
+import { getLambda, pick, prerunCheck } from  "./util";
 
 const cloudwatchevents = new AWS.CloudWatchEvents();
 const lambda = new AWS.Lambda();
@@ -101,7 +101,7 @@ function _cron(ruleName, opts, { Description, TargetArn, RoleArn, ScheduleExpres
 
         config.trigger.RuleName = ruleName;
 
-        fs.writeFileSync(getLambdarc(), JSON.stringify(config, null, "    "));
+        fs.writeFileSync(getLambda(), JSON.stringify(config, null, "    "));
 
         return null;
     });
