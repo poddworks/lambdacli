@@ -2,64 +2,71 @@ import fs from "fs";
 import inquirer from "inquirer";
 import shell from "shelljs";
 import { Entry, Bootstrap, FunctionEntry, FunctionCore, generatePackageJSON } from "./template";
-import { gulp, gulpFunc, gulpLambda, gulpDeploy } from "./template";
 import { buildConfig, getLambda, getConfig, getListing, taskConfig, taskListing } from "./util";
-
-const questions = [
-    {
-        type: "input",
-        name: "Description",
-        message: "Default Lambda function Description",
-        validate: function (input) {
-            return (input !== "" ? true : "You must provide a valid description of this Lambda");
-        }
-    },
-    {
-        type: "input",
-        name: "Role",
-        message: "Default Lambda execution Role",
-        validate: function (input) {
-            let pass = input.match(/arn:aws:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_/]+/);
-            return (input !== "" ? true : "You must provide a valid IAM role");
-        }
-    },
-    {
-        type: "list",
-        name: "Runtime",
-        message: "Default Lambda execution Runtime",
-        choices: [
-            "nodejs",
-            "nodejs4.3",
-            "java8",
-            "python2.7"
-        ]
-    },
-    {
-        type: "input",
-        name: "Timeout",
-        message: "Default Lambda execution Timeout",
-        default: 30,
-        validate: function (input) {
-            let val = Number(input);
-            return (Number.isInteger(val) ? true : "Timeout value must be a Integer");
-        },
-        filter: Number
-    },
-    {
-        type: "input",
-        name: "MemorySize",
-        message: "Default Lambda execution MemorySize Hint",
-        default: 128,
-        validate: function (input) {
-            let val = Number(input);
-            return (Number.isInteger(val) ? true : "MemorySize value must be an Integer");
-        },
-        filter: Number
-    }
-];
+import { gulp, gulpFunc, gulpLambda, gulpDeploy } from "./template";
+import { listRoles } from "./aws";
 
 export function create(functionPrefix, opts) {
-    inquirer.prompt(questions).then(_create.bind(null, functionPrefix, opts));
+    let resolve = Promise.all([
+        listRoles()
+    ]);
+
+    resolve = resolve.then(([ roleArns ]) => {
+        const questions = [
+            {
+                type: "input",
+                name: "Description",
+                message: "Default Lambda function Description",
+                validate: function (input) {
+                    return (input !== "" ? true : "You must provide a valid description of this Lambda");
+                }
+            },
+            {
+                type: "list",
+                name: "Role",
+                message: "Lambda execution Role",
+                choices: roleArns
+            },
+            {
+                type: "list",
+                name: "Runtime",
+                message: "Default Lambda execution Runtime",
+                choices: [
+                    "nodejs",
+                    "nodejs4.3",
+                    "java8",
+                    "python2.7"
+                ]
+            },
+            {
+                type: "input",
+                name: "Timeout",
+                message: "Default Lambda execution Timeout",
+                default: 30,
+                validate: function (input) {
+                    let val = Number(input);
+                    return (Number.isInteger(val) ? true : "Timeout value must be a Integer");
+                },
+                filter: Number
+            },
+            {
+                type: "input",
+                name: "MemorySize",
+                message: "Default Lambda execution MemorySize Hint",
+                default: 128,
+                validate: function (input) {
+                    let val = Number(input);
+                    return (Number.isInteger(val) ? true : "MemorySize value must be an Integer");
+                },
+                filter: Number
+            }
+        ];
+        return inquirer.prompt(questions).then(_create.bind(null, functionPrefix, opts));
+    });
+
+    resolve.catch((err) => {
+        console.log(err);
+    });
 }
 
 function _create(functionPrefix, opts, ans) {

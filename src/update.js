@@ -2,6 +2,7 @@ import fs from "fs";
 import inquirer from "inquirer";
 import { getLambda, getListing, handlerGen, pick, prerunCheck, taskListing } from  "./util";
 import { gulpDeployOne } from  "./template";
+import { listRoles } from "./aws";
 
 const config = {};
 const listing = {};
@@ -18,47 +19,54 @@ export function update(handlerName, opts) {
         var { Description, Role, Timeout, MemorySize } = config.handler[idx];
     }
 
-    const questions = [
-        {
-            type: "input",
-            name: "Description",
-            message: "Lambda Description",
-            default: Description,
-        },
-        {
-            type: "input",
-            name: "Role",
-            message: "Lambda execution Role",
-            default: Role,
-            validate: function (input) {
-                let pass = input.match(/arn:aws:iam::\d{12}:role\/?[a-zA-Z_0-9+=,.@\-_/]+/);
-                return (input !== "" ? true : "You must provide a valid IAM role");
+    let resolve = Promise.all([
+        listRoles()
+    ]);
+
+    resolve = resolve.then(([ roleArns ]) => {
+        const questions = [
+            {
+                type: "input",
+                name: "Description",
+                message: "Lambda Description",
+                default: Description,
+            },
+            {
+                type: "list",
+                name: "Role",
+                message: "Lambda execution Role",
+                default: Role,
+                choices: roleArns
+            },
+            {
+                type: "input",
+                name: "Timeout",
+                message: "Lambda execution Timeout",
+                default: Timeout,
+                validate: function (input) {
+                    let val = Number(input);
+                    return (Number.isInteger(val) ? true : "Timeout value must be a Integer");
+                },
+                filter: Number
+            },
+            {
+                type: "input",
+                name: "MemorySize",
+                message: "Lambda execution MemorySize Hint",
+                default: MemorySize,
+                validate: function (input) {
+                    let val = Number(input);
+                    return (Number.isInteger(val) ? true : "MemorySize value must be an Integer");
+                },
+                filter: Number
             }
-        },
-        {
-            type: "input",
-            name: "Timeout",
-            message: "Lambda execution Timeout",
-            default: Timeout,
-            validate: function (input) {
-                let val = Number(input);
-                return (Number.isInteger(val) ? true : "Timeout value must be a Integer");
-            },
-            filter: Number
-        },
-        {
-            type: "input",
-            name: "MemorySize",
-            message: "Lambda execution MemorySize Hint",
-            default: MemorySize,
-            validate: function (input) {
-                let val = Number(input);
-                return (Number.isInteger(val) ? true : "MemorySize value must be an Integer");
-            },
-            filter: Number
-        }
-    ];
-    inquirer.prompt(questions).then(_update.bind(null, handlerName, functionName, idx, opts));
+        ];
+        return inquirer.prompt(questions).then(_update.bind(null, handlerName, functionName, idx, opts));
+    });
+
+    resolve.catch((err) => {
+        console.log(err);
+    });
 }
 
 function _update(handlerName, functionName, idx, opts, ans) {
