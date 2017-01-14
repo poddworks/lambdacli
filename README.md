@@ -36,6 +36,11 @@ lambdacli deploy.prod <function_name>
 lambdacli ref <function_name> --name <alias_name> [--at <version>]
 ```
 
+- Clean and Remove built bundle
+```
+lambdacli deploy.clean
+```
+
 ## What does it do
 **lambdacli** helps by setting up a workspace ready for
 - Create function blueprint to promote best practices
