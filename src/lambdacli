@@ -5,6 +5,7 @@ import ENV from "./environment";
 import { create } from "./create";
 import { update } from "./update";
 import { cron } from "./cron";
+import { deploy } from "./deploy";
 
 program.version(require("../package.json").version);
 
@@ -29,6 +30,30 @@ program.
     action(function (ruleName, opts) {
         ENV.load();
         cron(ruleName, opts);
+    });
+
+program.
+    command("deploy.clean").
+    description("Clear and Destroy Lambda bundle").
+    action(function (opts) {
+        ENV.load();
+        deploy("", opts).clean();
+    });
+
+program.
+    command("deploy.dev <handlerName>").
+    description("Bundle and deploy Lambda function for Latest").
+    action(function (handlerName, opts) {
+        ENV.load();
+        deploy(handlerName, opts).dev();
+    });
+
+program.
+    command("deploy.prod <handlerName>").
+    description("Bundle and deploy Lambda function for Production").
+    action(function (handlerName, opts) {
+        ENV.load();
+        deploy(handlerName, opts).prod();
     });
 
 program.

@@ -54,6 +54,8 @@ requireDir("./gulp.d");
 gulp.task("clean", [ "func.clean", "lambda.clean" ]);
 
 gulp.task("default", [ "func", "lambda" ]);
+
+module.exports = gulp;
 `;
 
 export const gulpFunc = `"use strict"
@@ -138,7 +140,7 @@ gulp.task("lambda.npm", [ "lambda.npm.src" ], shell.task([
 ]));
 
 gulp.task("lambda", [ "lambda.npm" ], function() {
-    gulp.src([ \`\${cfg.build.dest.lambda}/**/*\`, \`!\${cfg.build.dest.lambda}/app.zip\` ]).pipe(zip("app.zip")).pipe(gulp.dest(cfg.build.dest.lambda));
+    return gulp.src([ \`\${cfg.build.dest.lambda}/**/*\`, \`!\${cfg.build.dest.lambda}/app.zip\` ]).pipe(zip("app.zip")).pipe(gulp.dest(cfg.build.dest.lambda));
 });
 `;
 
@@ -149,7 +151,7 @@ const gulp = require("gulp");
 const lambda = require("gulp-awslambda");
 const stream = require("merge-stream")();
 
-gulp.task("deploy.dev", function () {
+gulp.task("deploy.dev", [ "lambda" ], function () {
     let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: false,
@@ -162,7 +164,7 @@ gulp.task("deploy.dev", function () {
     return stream;
 });
 
-gulp.task("deploy.prod", function () {
+gulp.task("deploy.prod", [ "lambda" ], function () {
     let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: true,
@@ -184,7 +186,7 @@ const gulp = require("gulp");
 const lambda = require("gulp-awslambda");
 const stream = require("merge-stream")();
 
-gulp.task("deploy.dev.${handlerName}", function () {
+gulp.task("deploy.dev.${handlerName}", [ "lambda" ], function () {
     let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: false,
@@ -195,7 +197,7 @@ gulp.task("deploy.dev.${handlerName}", function () {
     return stream;
 });
 
-gulp.task("deploy.prod.${handlerName}", function () {
+gulp.task("deploy.prod.${handlerName}", [ "lambda" ] , function () {
     let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: true,
