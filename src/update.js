@@ -9,11 +9,11 @@ import { listRoles } from "./aws";
 export function update(handlerName, opts) {
     let functionName = `${ENV.config.lambda.Prefix}-${handlerName}`;
 
+    let { Description, Role, Timeout, MemorySize } = ENV.config.lambda;
+
     let idx = ENV.config.handler.findIndex((elem) => elem.FunctionName === functionName);
-    if (idx === -1) {
-        var { Description, Role, Timeout, MemorySize } = ENV.config.lambda;
-    } else {
-        var { Description, Role, Timeout, MemorySize } = ENV.config.handler[idx];
+    if (idx !== -1) {
+        ({ Description, Role, Timeout, MemorySize } = ENV.config.handler[idx]);
     }
 
     let resolve = Promise.all([
@@ -27,6 +27,19 @@ export function update(handlerName, opts) {
                 name: "Description",
                 message: "Lambda Description",
                 default: Description,
+            },
+            {
+                type: "input",
+                name: "Region",
+                message: "Region for AWS Lambda",
+                default: ENV.config.aws.region,
+                validate: function (input) {
+                    return (input !== "" ? true : "You must provide a valid region");
+                },
+                filter: function (input) {
+                    ENV.changeRegion(input);
+                    return input;
+                }
             },
             {
                 type: "list",
@@ -62,7 +75,7 @@ export function update(handlerName, opts) {
     });
 
     resolve.catch((err) => {
-        console.log(err);
+        console.log(err.message);
     });
 }
 

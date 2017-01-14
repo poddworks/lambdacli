@@ -11,7 +11,7 @@ export function pick(src, ...fields) {
     return dst;
 }
 
-export function buildConfig(prefix, { Description, Role, Runtime, Timeout, MemorySize }) {
+export function buildConfig(prefix, { Description, Region, Role, Runtime, Timeout, MemorySize }) {
     let dotLambdaRc = {
         build: {
             dest: {
@@ -50,6 +50,9 @@ export function buildConfig(prefix, { Description, Role, Runtime, Timeout, Memor
                     ]
                 }
             }
+        },
+        aws: {
+            region: Region
         },
         lambda: {
             Prefix: prefix,

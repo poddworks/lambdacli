@@ -1,10 +1,8 @@
 import AWS from "aws-sdk";
 import defer from "deferred";
 
-const ec2 = new AWS.EC2();
-const iam = new AWS.IAM();
-
 export function listRoles(nextToken, collector = []) {
+    const iam = new AWS.IAM();
     let deferred = defer();
     let params = {};
     if (nextToken) {
@@ -26,9 +24,21 @@ export function listRoles(nextToken, collector = []) {
 }
 
 export function listVpcSecurityGroups() {
+    const ec2 = new AWS.EC2();
     return Promise.resolve();
 }
 
 export function listVpcSubnets() {
+    const ec2 = new AWS.EC2();
     return Promise.resolve();
+}
+
+export function updateEventRule({ Name, Description, RoleArn, ScheduleExpression, State }) {
+    const cloudwatchevents = new AWS.CloudWatchEvents();
+    return cloudwatchevents.putRule({ Name, Description, RoleArn, ScheduleExpression, State }).promise();
+}
+
+export function describeLambdaFunction(functionName) {
+    const lambda = new AWS.Lambda();
+    return lambda.getFunction({ FunctionName: functionName }).promise();
 }

@@ -24,6 +24,14 @@ export function create(functionPrefix, opts) {
                 }
             },
             {
+                type: "input",
+                name: "Region",
+                message: "Default Region for AWS resources",
+                validate: function (input) {
+                    return (input !== "" ? true : "You must provide a valid region");
+                }
+            },
+            {
                 type: "list",
                 name: "Role",
                 message: "Lambda execution Role",

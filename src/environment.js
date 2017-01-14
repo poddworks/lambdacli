@@ -1,3 +1,4 @@
+import AWS from "aws-sdk";
 import fs from "fs";
 
 const lambdarc = `${process.cwd()}/.lambdarc.json`;
@@ -27,6 +28,12 @@ function load() {
         console.log("Project configuration error");
         process.exit(3);
     }
+
+    changeRegion(config.aws.region);
+}
+
+function changeRegion(region) {
+    AWS.config.region = region;
 }
 
 export default {
@@ -37,5 +44,6 @@ export default {
     config,
     listing,
 
-    load
+    load,
+    changeRegion
 }
