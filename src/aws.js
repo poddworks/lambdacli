@@ -1,5 +1,6 @@
 import AWS from "aws-sdk";
 import defer from "deferred";
+import sha1 from "sha1";
 
 export function listRoles(nextToken, collector = []) {
     const iam = new AWS.IAM();
@@ -38,7 +39,31 @@ export function updateEventRule({ Name, Description, RoleArn, ScheduleExpression
     return cloudwatchevents.putRule({ Name, Description, RoleArn, ScheduleExpression, State }).promise();
 }
 
+export function updateEventTargets(Rule, Arn) {
+    const cloudwatchevents = new AWS.CloudWatchEvents();
+    let params = {
+        Rule,
+        Targets: [{
+            Arn,
+            Id: sha1(Arn)
+        }]
+    };
+    return cloudwatchevents.putTargets(params).promise();
+}
+
 export function describeLambdaFunction(functionName) {
     const lambda = new AWS.Lambda();
     return lambda.getFunction({ FunctionName: functionName }).promise();
+}
+
+export function allowInvokeLambda(functionName, sourceArn) {
+    const lambda = new AWS.Lambda();
+    let params = {
+        Action: "lambda:InvokeFunction",
+        FunctionName: functionName,
+        Principal: "events.amazonaws.com",
+        SourceArn: sourceArn,
+        StatementId: sha1(`${functionName}::${sourceArn}`)
+    };
+    return lambda.addPermission(params).promise();
 }
