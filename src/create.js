@@ -1,9 +1,11 @@
 import fs from "fs";
 import inquirer from "inquirer";
 import shell from "shelljs";
+
+import ENV from "./environment";
 import { Entry, Bootstrap, FunctionEntry, FunctionCore, generatePackageJSON } from "./template";
-import { buildConfig, getLambda, getConfig, getListing, taskConfig, taskListing } from "./util";
-import { gulp, gulpFunc, gulpLambda, gulpDeploy } from "./template";
+import { buildConfig, taskConfig, taskListing } from "./util";
+import { gulpFile, gulpFunc, gulpLambda, gulpDeploy } from "./template";
 import { listRoles } from "./aws";
 
 export function create(functionPrefix, opts) {
@@ -72,11 +74,11 @@ export function create(functionPrefix, opts) {
 function _create(functionPrefix, opts, ans) {
     [ "gulp.d", "src/worker", "src/task" ].forEach((dir) => shell.exec(`mkdir -p ${dir}`));
 
-    fs.writeFileSync(getLambda(), buildConfig(functionPrefix, ans));
+    fs.writeFileSync(ENV.lambdarc, buildConfig(functionPrefix, ans));
 
-    fs.writeFileSync(getListing(), taskListing());
+    fs.writeFileSync(ENV.listingrc, taskListing());
 
-    fs.writeFileSync(getConfig(), taskConfig());
+    fs.writeFileSync(ENV.configrc, taskConfig());
 
     fs.writeFileSync("package.json", generatePackageJSON(functionPrefix));
 
@@ -88,7 +90,7 @@ function _create(functionPrefix, opts, ans) {
 
     fs.writeFileSync("src/functions.js", FunctionCore);
 
-    fs.writeFileSync("gulpfile.js", gulp);
+    fs.writeFileSync("gulpfile.js", gulpFile);
 
     fs.writeFileSync("gulp.d/gulpfile.func.js", gulpFunc);
 

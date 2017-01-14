@@ -43,7 +43,7 @@ export const FunctionCore = `// TODO: export functions as required by adding exp
 export {};
 `;
 
-export const gulp = `"use strict"
+export const gulpFile = `"use strict"
 
 require("dotenv").config();
 const gulp = require("gulp");

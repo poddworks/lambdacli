@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import program from "commander";
+
+import ENV from "./environment";
 import { create } from "./create";
 import { update } from "./update";
 import { cron } from "./cron";
@@ -17,6 +19,7 @@ program.
     command("update <handlerName>").
     description("Add/Update handler configuration to AWS Lambda").
     action(function (handlerName, opts) {
+        ENV.load();
         update(handlerName, opts);
     });
 
@@ -24,6 +27,7 @@ program.
     command("cron <ruleName>").
     description("Setup cron scheduled job via AWS CloudWatch Event").
     action(function (ruleName, opts) {
+        ENV.load();
         cron(ruleName, opts);
     });
 
@@ -31,12 +35,12 @@ program.
     command("info").
     description("Show information about configuration").
     action(function (opts) {
-        const meta = require(`${process.cwd()}/.lambdarc.json`);
-        if (meta.handler.length) {
-            console.log(JSON.stringify(meta.handler, null, "  "));
+        ENV.load();
+        if (ENV.config.handler.length) {
+            console.log(JSON.stringify(ENV.config.handler, null, "  "));
         }
-        if (meta.trigger.length) {
-            console.log(JSON.stringify(meta.trigger, null, "  "));
+        if (ENV.config.trigger.length) {
+            console.log(JSON.stringify(ENV.config.trigger, null, "  "));
         }
     });
 

@@ -1,17 +1,3 @@
-import fs from "fs";
-
-export function getLambda() {
-    return `${process.cwd()}/.lambdarc.json`;
-}
-
-export function getConfig() {
-    return `${process.cwd()}/config.js`;
-}
-
-export function getListing() {
-    return `${process.cwd()}/listing.js`;
-}
-
 export function pick(src, ...fields) {
     let dst = {};
     for (let f of fields) {
@@ -113,26 +99,4 @@ export default function ${handlerName}(event, context, callback) {
     let handlerConfig = `export default {};
 `;
     return { handler, handlerConfig };
-}
-
-export function prerunCheck(config, listing) {
-    const lambdarc = getLambda();
-    if (config && fs.existsSync(lambdarc)) {
-        Object.assign(config, require(lambdarc));
-    } else {
-        console.log("You must first create AWS Lambda project");
-        process.exit(1);
-    }
-    const listingrc = getListing();
-    if (listing && fs.existsSync(listingrc)) {
-        Object.assign(listing, require(listingrc));
-    } else {
-        console.log("Project configuration error");
-        process.exit(2);
-    }
-    const configrc = getConfig();
-    if (!fs.existsSync(configrc)) {
-        console.log("Project configuration error");
-        process.exit(3);
-    }
 }

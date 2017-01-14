@@ -1,22 +1,19 @@
 import fs from "fs";
 import inquirer from "inquirer";
-import { getLambda, getListing, handlerGen, pick, prerunCheck, taskListing } from  "./util";
+
+import ENV from "./environment";
 import { gulpDeployOne } from  "./template";
+import { handlerGen, pick, taskListing } from  "./util";
 import { listRoles } from "./aws";
 
-const config = {};
-const listing = {};
-
 export function update(handlerName, opts) {
-    prerunCheck(config, listing);
+    let functionName = `${ENV.config.lambda.Prefix}-${handlerName}`;
 
-    let functionName = `${config.lambda.Prefix}-${handlerName}`;
-
-    let idx = config.handler.findIndex((elem) => elem.FunctionName === functionName);
+    let idx = ENV.config.handler.findIndex((elem) => elem.FunctionName === functionName);
     if (idx === -1) {
-        var { Description, Role, Timeout, MemorySize } = config.lambda;
+        var { Description, Role, Timeout, MemorySize } = ENV.config.lambda;
     } else {
-        var { Description, Role, Timeout, MemorySize } = config.handler[idx];
+        var { Description, Role, Timeout, MemorySize } = ENV.config.handler[idx];
     }
 
     let resolve = Promise.all([
@@ -73,16 +70,16 @@ function _update(handlerName, functionName, idx, opts, ans) {
     let settings = pick(ans, "Description", "Role", "Timeout", "MemorySize");
     if (idx === -1) {
         // Setup handler from default template
-        config.handler.push(Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings));
+        ENV.config.handler.push(Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings));
         let { handler, handlerConfig } = handlerGen(handlerName);
         fs.writeFileSync(`src/worker/${handlerName}.js`, handler);
         fs.writeFileSync(`src/worker/${handlerName}_setting.js`, handlerConfig);
         fs.writeFileSync(`gulp.d/gulpfile.${handlerName}.js`, gulpDeployOne(handlerName));
         // Setup config entry for new handler
-        listing.tasks.push(handlerName);
-        fs.writeFileSync(getListing(), taskListing(listing));
+        ENV.listing.tasks.push(handlerName);
+        fs.writeFileSync(ENV.listingrc, taskListing(ENV.listing));
     } else {
-        Object.assign(config.handler[idx], settings);
+        Object.assign(ENV.config.handler[idx], settings);
     }
-    fs.writeFileSync(getLambda(), JSON.stringify(config, null, "    "));
+    fs.writeFileSync(ENV.lambdarc, JSON.stringify(ENV.config, null, "    "));
 }
