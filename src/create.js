@@ -43,9 +43,7 @@ export function create(functionPrefix, opts) {
                 message: "Default Lambda execution Runtime",
                 choices: [
                     "nodejs",
-                    "nodejs4.3",
-                    "java8",
-                    "python2.7"
+                    "nodejs4.3"
                 ]
             },
             {
