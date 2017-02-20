@@ -99,7 +99,7 @@ gulp.task("lambda.npm.meta", function () {
     return gulp.src(cfg.build.paths.lambda.meta, { dot: true }).pipe(gulp.dest(cfg.build.dest.lambda));
 });
 
-gulp.task("lambda.npm.lib.config", function () {
+gulp.task("lambda.npm.config", function () {
     return gulp.src(cfg.build.paths.lambda.lib.cfg, { dot: true, base: "src/" }).
         pipe(babel({
             presets: [ "es2015" ],
@@ -111,7 +111,7 @@ gulp.task("lambda.npm.lib.config", function () {
         pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
 });
 
-gulp.task("lambda.npm.lib", [ "lambda.npm.lib.config" ], function () {
+gulp.task("lambda.npm.lib", function () {
     return gulp.src(cfg.build.paths.lambda.lib.src, { dot: true, base: "src/" }).
         pipe(babel({
             presets: [ "es2015" ],
@@ -123,7 +123,7 @@ gulp.task("lambda.npm.lib", [ "lambda.npm.lib.config" ], function () {
         pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
 });
 
-gulp.task("lambda.npm.src", [ "lambda.npm.lib", "lambda.npm.meta" ] , function () {
+gulp.task("lambda.npm.src", function () {
     return gulp.src(cfg.build.paths.lambda.src, { dot: true }).
         pipe(babel({
             presets: [ "es2015" ],
@@ -135,11 +135,43 @@ gulp.task("lambda.npm.src", [ "lambda.npm.lib", "lambda.npm.meta" ] , function (
         pipe(gulp.dest(cfg.build.dest.lambda));
 });
 
-gulp.task("lambda.npm", [ "lambda.npm.src" ], shell.task([
+gulp.task("lambda.npm", [ "lambda.npm.src", "lambda.npm.lib", "lambda.npm.config", "lambda.npm.meta" ], shell.task([
     \`cd \${cfg.build.dest.lambda} && npm install --production\`
 ]));
 
 gulp.task("lambda", [ "lambda.npm" ], function() {
+    return gulp.src([ \`\${cfg.build.dest.lambda}/**/*\`, \`!\${cfg.build.dest.lambda}/app.zip\` ]).pipe(zip("app.zip")).pipe(gulp.dest(cfg.build.dest.lambda));
+});
+
+gulp.task("lambda.npm.config.dev", function () {
+    return gulp.src(cfg.build.paths.lambda.lib.cfg, { dot: true, base: "src/" }).
+        pipe(babel({
+            presets: [ "es2015" ],
+            plugins: [ "inline-package-json", "transform-runtime" ]
+        })).
+        pipe(babel({
+            plugins: [ "minify-dead-code-elimination" ],
+        })).
+        pipe(gulp.dest(cfg.build.dest.lambda + "/lib"));
+});
+
+gulp.task("lambda.npm.src.dev", function () {
+    return gulp.src(cfg.build.paths.lambda.src, { dot: true }).
+        pipe(babel({
+            presets: [ "es2015" ],
+            plugins: [ "inline-package-json", "transform-runtime" ]
+        })).
+        pipe(babel({
+            plugins: [ "minify-dead-code-elimination" ],
+        })).
+        pipe(gulp.dest(cfg.build.dest.lambda));
+});
+
+gulp.task("lambda.npm.dev", [ "lambda.npm.src.dev", "lambda.npm.lib", "lambda.npm.config.dev", "lambda.npm.meta" ], shell.task([
+    \`cd \${cfg.build.dest.lambda} && npm install --production\`
+]));
+
+gulp.task("lambda.dev", [ "lambda.npm.dev" ], function() {
     return gulp.src([ \`\${cfg.build.dest.lambda}/**/*\`, \`!\${cfg.build.dest.lambda}/app.zip\` ]).pipe(zip("app.zip")).pipe(gulp.dest(cfg.build.dest.lambda));
 });
 `;
@@ -151,7 +183,7 @@ const gulp = require("gulp");
 const lambda = require("gulp-awslambda");
 const stream = require("merge-stream")();
 
-gulp.task("deploy.dev", [ "lambda" ], function () {
+gulp.task("deploy.dev", [ "lambda.dev" ], function () {
     let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: false,
@@ -186,7 +218,7 @@ const gulp = require("gulp");
 const lambda = require("gulp-awslambda");
 const stream = require("merge-stream")();
 
-gulp.task("deploy.dev.${handlerName}", [ "lambda" ], function () {
+gulp.task("deploy.dev.${handlerName}", [ "lambda.dev" ], function () {
     let bundle = gulp.src(\`\${cfg.build.dest.lambda}/app.zip\`);
     let opts = {
         publish: false,
