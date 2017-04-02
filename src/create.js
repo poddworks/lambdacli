@@ -5,8 +5,8 @@ import shell from "shelljs";
 import ENV from "./environment";
 import { Entry, Bootstrap, FunctionEntry, FunctionCore, generatePackageJSON } from "./template";
 import { buildConfig, taskConfig, taskListing } from "./util";
+import { createDefaultRole, listRoles } from "./aws";
 import { gulpFile, gulpFunc, gulpLambda, gulpDeploy } from "./template";
-import { listRoles } from "./aws";
 
 export function create(functionPrefix, opts) {
     let resolve = Promise.all([
@@ -14,6 +14,11 @@ export function create(functionPrefix, opts) {
     ]);
 
     resolve = resolve.then(([ roleArns ]) => {
+        const defaultRoleArnHint = "Create Default Role For VPC Execution";
+        if (roleArns.length === 0) {
+            roleArns.push(defaultRoleArnHint);
+        }
+
         const questions = [
             {
                 type: "input",
@@ -35,7 +40,15 @@ export function create(functionPrefix, opts) {
                 type: "list",
                 name: "Role",
                 message: "Lambda execution Role",
-                choices: roleArns
+                default: defaultRoleArnHint,
+                choices: roleArns,
+                filter: function (input) {
+                    if (input === defaultRoleArnHint) {
+                        return createDefaultRole();
+                    } else {
+                        return Promise.resolve(input);
+                    }
+                }
             },
             {
                 type: "list",
@@ -69,7 +82,13 @@ export function create(functionPrefix, opts) {
                 filter: Number
             }
         ];
-        return inquirer.prompt(questions).then(_create.bind(null, functionPrefix, opts));
+        return inquirer.prompt(questions)
+          .then((ans) => {
+              return Promise.all([ ans, ans.Role ]);
+          })
+          .then(([ ans ]) => {
+              return _create(functionPrefix, opts, ans);
+          });
     });
 
     resolve.catch((err) => {

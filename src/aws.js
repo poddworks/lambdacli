@@ -67,3 +67,44 @@ export function allowInvokeLambda(functionName, sourceArn) {
     };
     return lambda.addPermission(params).promise();
 }
+
+export function createDefaultRole() {
+    const iam = new AWS.IAM();
+    const roleCreationParams = {
+        AssumeRolePolicyDocument: JSON.stringify({
+            Version: "2012-10-17",
+            Statement: [
+                {
+                    Action: [
+                        "sts:AssumeRole"
+                    ],
+                    Effect: "Allow",
+                    Principal: {
+                        Service: [
+                            "lambda.amazonaws.com"
+                        ]
+                    }
+                }
+            ]
+        }),
+        Path: "/",
+        RoleName: "DefaultRoleCreatedByLambdaCLI"
+    };
+    const managedPolicyParams = {
+        PolicyArn: "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole",
+        RoleName: "DefaultRoleCreatedByLambdaCLI"
+    };
+    let resolve = iam.createRole(roleCreationParams).promise();
+    resolve = resolve.then(function (data) {
+        let deferred = defer();
+        iam.attachRolePolicy(managedPolicyParams, function (err) {
+            if (err) {
+                deferred.reject(err);
+            } else {
+                deferred.resolve(data.Role.Arn);
+            }
+        });
+        return deferred.promise;
+    });
+    return resolve;
+}
