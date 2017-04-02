@@ -83,7 +83,9 @@ function _update(handlerName, functionName, idx, opts, ans) {
     let settings = pick(ans, "Description", "Role", "Timeout", "MemorySize");
     if (idx === -1) {
         // Setup handler from default template
-        ENV.config.handler.push(Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings));
+        const handlerSetting = Object.assign({ FunctionName: functionName, Handler: `lambda.${handlerName}` }, settings);
+        ENV.config.handler.push(handlerSetting);
+        ENV.config.handlerKey[handlerName] = handlerSetting;
         let { handler, handlerConfig } = handlerGen(handlerName);
         fs.writeFileSync(`src/worker/${handlerName}.js`, handler);
         fs.writeFileSync(`src/worker/${handlerName}_setting.js`, handlerConfig);
@@ -93,6 +95,7 @@ function _update(handlerName, functionName, idx, opts, ans) {
         fs.writeFileSync(ENV.listingrc, taskListing(ENV.listing));
     } else {
         Object.assign(ENV.config.handler[idx], settings);
+        Object.assign(ENV.config.handlerKey[handlerName], settings);
     }
     fs.writeFileSync(ENV.lambdarc, JSON.stringify(ENV.config, null, "    "));
 }

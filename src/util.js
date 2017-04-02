@@ -65,6 +65,9 @@ export function buildConfig(prefix, { Description, Region, Role, Runtime, Timeou
         handler: [
             // Nothing
         ],
+        handlerKey: {
+            // Nothing
+        },
         trigger: [
             // Nothing
         ]
