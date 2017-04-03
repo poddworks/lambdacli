@@ -124,8 +124,7 @@ function _create(functionPrefix, opts, ans) {
     fs.writeFileSync("gulp.d/gulpfile.deploy.js", gulpDeploy);
 
     const dependencies = [
-        "babel-runtime",
-        "dotenv"
+        "babel-runtime"
     ];
     shell.exec(`npm install --save ${dependencies.join(" ")}`);
 
@@ -136,6 +135,7 @@ function _create(functionPrefix, opts, ans) {
         "babel-plugin-transform-runtime",
         "babel-preset-es2015",
         "del",
+        "dotenv",
         "gulp",
         "gulp-awslambda",
         "gulp-babel",
